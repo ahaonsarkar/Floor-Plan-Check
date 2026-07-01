@@ -1,0 +1,30 @@
+Task,Start Date,End Date,Duration Days,Dependency,Phase,Owner,Risk Level,Milestone
+Requirements Gathering,2026-07-01,2026-07-07,7,,Research & Setup,PM,Low,No
+Stakeholder Interviews,2026-07-08,2026-07-12,5,R1,Research & Setup,PM,Low,No
+Project Charter Approval,2026-07-13,2026-07-15,3,R2,Research & Setup,PM,Low,Yes
+Tool/Stack Selection,2026-07-13,2026-07-20,8,R3,Research & Setup,Dev Lead,Low,No
+Infra & CI/CD Setup,2026-07-13,2026-07-28,16,R4,Research & Setup,DevOps,Low,No
+Data Collection & Annotation,2026-07-21,2026-08-04,14,,Core Development,Data Scientist,Medium,No
+Feature Extraction & Model Selection,2026-08-05,2026-08-18,14,A1,Core Development,Data Scientist,Medium,No
+Model Training,2026-08-19,2026-09-02,14,A2,Core Development,ML Engineer,High,No
+Model Evaluation & Tuning,2026-09-03,2026-09-09,7,A3,Core Development,ML Engineer,Medium,No
+Backend API Service,2026-09-10,2026-09-23,14,A4,Core Development,Backend Dev,Medium,No
+Image Dataset Prep,2026-08-05,2026-08-18,14,,Core Development,Dev,Low,No
+Preprocessing Algorithms,2026-08-19,2026-09-02,14,P1,Core Development,Dev,Low,No
+Pipeline Integration,2026-09-03,2026-09-09,7,P2,Core Development,Dev,Low,No
+Frontend Wireframes,2026-07-21,2026-07-28,8,,Core Development,UX Designer,Low,No
+UI Component Library,2026-07-29,2026-08-12,14,P4,Core Development,Frontend,Low,No
+Data Layer Integration,2026-08-13,2026-08-26,14,P5,Core Development,Frontend,Low,No
+Interactive Editing,2026-08-27,2026-09-09,14,P6,Core Development,Frontend,Low,No
+App Integration,2026-09-10,2026-09-16,7,P7,Core Development,Frontend,Low,No
+Backend Unit Tests,2026-09-07,2026-09-20,14,,Testing & Validation,QA,Low,No
+Pipeline Unit Tests,2026-09-07,2026-09-20,14,,Testing & Validation,QA,Low,No
+Frontend Unit Tests,2026-09-07,2026-09-20,14,,Testing & Validation,QA,Low,No
+Integration Tests,2026-09-21,2026-10-04,14,U1|U2|U3,Testing & Validation,QA,Medium,No
+System Tests,2026-09-21,2026-10-04,14,I1,Testing & Validation,QA,Medium,No
+Performance Benchmarks,2026-09-22,2026-10-05,14,S1,Testing & Validation,DevOps,Low,No
+Acceptance Checklist,2026-10-01,2026-10-05,5,C1,Testing & Validation,PM,Low,Yes
+Production API Deploy,2026-10-19,2026-10-25,7,A1r,Deployment & Handover,DevOps,Low,Yes
+Production UI Deploy,2026-10-19,2026-10-25,7,D1,Deployment & Handover,Frontend,Low,Yes
+Monitoring Setup,2026-10-19,2026-10-25,7,D1|D2,Deployment & Handover,DevOps,Low,No
+Documentation & Training,2026-10-26,2026-10-31,6,D3,Deployment & Handover,Technical Writer,Low,Yes

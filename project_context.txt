@@ -1,0 +1,263 @@
+# 2D Floor Planning Evaluation System - Project Context
+
+## Project Overview
+
+This is an **Automated 2D Floor Planning Evaluation System** that processes architectural floor plan images to automatically detect and extract key structural elements: **rooms, walls, doors, and windows**. The system consists of a Python backend for computer vision processing and a React frontend for visualization and interaction.
+
+## Purpose & Goals
+
+The system aims to:
+1. **Automate floor plan analysis** - Convert raw floor plan images into structured, machine-readable data
+2. **Enable architectural evaluation** - Provide quantitative data about room layouts, wall structures, and openings
+3. **Support design workflows** - Give architects/designers a tool to quickly digitize and analyze 2D floor plans
+4. **Serve as a foundation** - Build a platform for further analysis (space utilization, circulation paths, code compliance, etc.)
+
+## System Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌────────────────────┐
+│  Input Image    │────▶│  Preprocessing   │────▶│  Binary Image      │
+│  (Floor Plan)   │     │  (Grayscale,     │     │  (Walls=White,     │
+└─────────────────┘     │   Thresholding)  │     │   Background=Black)│
+                        └──────────────────┘     └─────────┬──────────┘
+                                                           │
+                    ┌──────────────────┐                   │
+                    │  Wall Detection  │◀──────────────────┘
+                    │  (WallDetector)  │
+                    └────────┬─────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+       ┌──────────┐  ┌─────────────┐  ┌──────────────┐
+       │ Room     │  │ Door/Window │  │ Other        │
+       │ Detection│  │ Detection   │  │ Analyses     │
+       └────┬─────┘  └──────┬──────┘  └──────┬───────┘
+            │               │                │
+            └───────────────┼────────────────┘
+                            ▼
+                   ┌─────────────────┐
+                   │  JSON Output    │
+                   │  (Structured    │
+                   │   Data)         │
+                   └────────┬────────┘
+                            │
+                            ▼
+                   ┌─────────────────┐
+                   │  Frontend       │
+                   │  (React +       │
+                   │   Tailwind)     │
+                   └─────────────────┘
+```
+
+## Backend Components (Python + OpenCV)
+
+### 1. Wall Detection (`Backend/processing/wall_detection.py`)
+- **Class**: `WallDetector`
+- **Purpose**: Identifies wall segments from preprocessed binary images
+- **Algorithm**:
+  - Binarizes grayscale image using configurable threshold (default: 128)
+  - Extracts external contours using `cv2.findContours`
+  - Filters by minimum area (100 pixels) to remove noise
+- **Output**: List of wall segments with:
+  - Unique ID
+  - Full contour coordinates
+  - Bounding box (x, y, width, height)
+  - Area in pixels
+
+### 2. Room Detection (`Backend/room_detector.py`)
+- **Main Function**: `detect_rooms(binary_image, ...)`
+- **Purpose**: Identifies enclosed spaces (rooms) from binary floor plan
+- **Pipeline**:
+  1. **Contour Extraction** - Finds external contours (`cv2.RETR_EXTERNAL`)
+  2. **Filtering** - Removes contours by:
+     - Minimum area (default: 150 px²)
+     - Perimeter-to-√area ratio (default: 0.3) - rejects elongated noise
+  3. **Polygon Approximation** - Douglas-Peucker algorithm (`cv2.approxPolyDP`) with configurable epsilon (default: 0.01)
+  4. **Labeling** - Assigns sequential labels (`room_1`, `room_2`, ...)
+- **Parameters**:
+  - `min_area`: Minimum room size
+  - `min_perimeter_ratio`: Shape regularity filter
+  - `epsilon_factor`: Polygon simplification level
+- **Output**: Dictionary mapping room labels to coordinate polygons
+- **Utilities**: `rooms_to_json()`, `save_rooms_to_file()`
+
+### 3. Door & Window Detection (`Backend/door_window_detector.py`)
+- **Main Function**: `detect_openings(binary_wall_image, ...)`
+- **Purpose**: Identifies and classifies wall openings as doors or windows
+- **Algorithm**:
+  1. **Inversion** - Inverts binary image so gaps become white shapes
+  2. **Gap Contour Extraction** - Finds external contours in inverted image
+  3. **Filtering** - By area (default: 50 px²) and perimeter ratio (default: 0.2)
+  4. **Classification Heuristics**:
+     - **Door**: Height ≥ 120px AND width/height ≤ 0.6 (vertical/tall)
+     - **Window**: Area ≤ 2% of image area AND aspect ratio 0.5-2.0 (square-like)
+     - **Other**: Falls through (ignored)
+- **Parameters**:
+  - `min_gap_area`, `min_gap_perimeter_ratio`: Noise filtering
+  - `door_min_height`, `door_max_aspect`: Door criteria
+  - `window_max_area_ratio`: Window size threshold
+- **Output**: `{"doors": [[x,y],...], "windows": [[x,y],...]}`
+- **Utilities**: `openings_to_json()`, `save_openings_to_file()`
+
+## Frontend (`Frontend/`)
+- **Framework**: React 18.2.0 with Vite 5.0
+- **Styling**: TailwindCSS 3.3.3 + @tailwindcss/forms
+- **Routing**: React Router DOM 6.18
+- **HTTP Client**: Axios 1.7 (for backend API communication)
+- **Icons**: react-icons 4.11 + lucide-react 0.263
+- **Dev Tools**: TypeScript 5.5, ESLint 8.54, Prettier 3.3
+
+### Likely Frontend Structure (inferred):
+- **Canvas/Visualization** - Render floor plan with detected elements overlaid
+- **Room List** - Display detected rooms with areas, labels
+- **Openings Panel** - Show doors/windows with positions
+- **Export/Import** - Load floor plans, export JSON results
+- **Settings** - Adjust detection parameters (thresholds, filters)
+
+## Data Flow & Integration
+
+### Input Requirements
+- Floor plan image (PNG, JPG, etc.)
+- Preprocessed to binary: walls=white (255), background=black (0)
+- Single channel grayscale
+
+### Output Format (JSON)
+
+**Rooms:**
+```json
+{
+  "room_1": [[x1, y1], [x2, y2], [x3, y3], [x4, y4]],
+  "room_2": [[x1, y1], [x2, y2], ...]
+}
+```
+
+**Openings:**
+```json
+{
+  "doors": [
+    [[x1, y1], [x2, y2], [x3, y3], [x4, y4]],
+    ...
+  ],
+  "windows": [
+    [[x1, y1], [x2, y2], [x3, y3], [x4, y4]],
+    ...
+  ]
+}
+```
+
+**Walls:**
+```json
+[
+  {
+    "id": 0,
+    "contour": [[x1,y1], [x2,y2], ...],
+    "bbox": {"x": 100, "y": 50, "width": 200, "height": 20},
+    "area": 4000
+  },
+  ...
+]
+```
+
+## Technical Stack Summary
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| Backend Language | Python | 3.x |
+| Computer Vision | OpenCV (cv2) | 4.x |
+| Data Serialization | JSON | - |
+| Frontend Framework | React | 18.2.0 |
+| Build Tool | Vite | 5.0 |
+| Styling | TailwindCSS | 3.3.3 |
+| HTTP Client | Axios | 1.7 |
+| Linting | ESLint | 8.54 |
+| Type Checking | TypeScript | 5.5 |
+
+## Key Design Decisions
+
+1. **Modular Pipeline** - Each detection (walls, rooms, doors/windows) is independent, allowing:
+   - Parallel development
+   - Independent parameter tuning
+   - Selective execution
+
+2. **Binary Image Assumption** - All detectors expect preprocessed binary images, separating:
+   - Preprocessing (thresholding, noise removal, line thinning) from
+   - Semantic detection (what is a room vs wall vs opening)
+
+3. **Heuristic Classification** - Door/window classification uses geometric rules rather than ML:
+   - Transparent, tunable parameters
+   - No training data required
+   - Fast inference
+
+4. **JSON as Interchange Format** - Language-agnostic, human-readable, easy to debug
+
+5. **CLI Entry Points** - Each detector can run standalone for testing:
+   ```bash
+   python room_detector.py <binary_image_path>
+   python door_window_detector.py <binary_image_path>
+   ```
+
+## Current State & Next Steps
+
+### What Exists:
+- ✅ Core detection algorithms (walls, rooms, doors/windows)
+- ✅ JSON serialization utilities
+- ✅ CLI testing interfaces
+- ✅ Frontend project scaffold with dependencies
+- ✅ Logging infrastructure
+
+### Likely Missing / To Implement:
+- ❌ Image preprocessing module (grayscale → binary conversion)
+- ❌ REST API / backend server (FastAPI/Flask) to serve detections
+- ❌ Frontend UI components (canvas, panels, controls)
+- ❌ End-to-end integration (frontend → backend → results)
+- ❌ File upload/management in frontend
+- ❌ Visualization overlays on floor plan images
+- ❌ Parameter tuning UI
+- ❌ Export formats (DXF, SVG, IFC)
+- ❌ Batch processing
+- ❌ Tests (unit, integration)
+- ❌ Docker / deployment configuration
+
+## Usage Example
+
+```python
+# Full pipeline
+from Backend.processing.wall_detection import WallDetector
+from Backend.room_detector import detect_rooms, save_rooms_to_file
+from Backend.door_window_detector import detect_openings, save_openings_to_file
+import cv2
+
+# 1. Load and preprocess (needs implementation)
+image = cv2.imread("floorplan.png", cv2.IMREAD_GRAYSCALE)
+# binary_image = preprocess_image(image)  # threshold, denoise, skeletonize
+
+# 2. Detect walls
+wall_detector = WallDetector(threshold=128)
+walls = wall_detector.detect(binary_image)
+
+# 3. Detect rooms
+rooms = detect_rooms(binary_image, min_area=200, min_perimeter_ratio=0.25)
+save_rooms_to_file(rooms, "rooms.json")
+
+# 4. Detect doors/windows
+openings = detect_openings(binary_image, min_gap_area=80, door_min_height=150)
+save_openings_to_file(openings, "openings.json")
+```
+
+## Configuration Parameters Quick Reference
+
+| Module | Parameter | Default | Purpose |
+|--------|-----------|---------|---------|
+| WallDetector | threshold | 128 | Binarization cutoff |
+| Room Detection | min_area | 150 | Min room size (px²) |
+| Room Detection | min_perimeter_ratio | 0.3 | Shape regularity |
+| Room Detection | epsilon_factor | 0.01 | Polygon simplification |
+| Door/Window | min_gap_area | 50 | Min opening size |
+| Door/Window | min_gap_perimeter_ratio | 0.2 | Opening shape filter |
+| Door/Window | door_min_height | 120 | Min door height (px) |
+| Door/Window | door_max_aspect | 0.6 | Max door width/height |
+| Door/Window | window_max_area_ratio | 0.02 | Max window area % |
+
+---
+
+*This context document summarizes the project as of the current codebase state. Update as the project evolves.*

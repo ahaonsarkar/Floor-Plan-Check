@@ -1,0 +1,31 @@
+{
+  "name": "floor-planning-evaluation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated 2D Floor Planning Evaluation System",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.18.0",
+    "axios": "^1.7.0",
+    "tailwindcss": "^3.3.3",
+    "@tailwindcss/forms": "^0.5.5",
+    "react-icons": "^4.11.0",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.54.0",
+    "eslint-plugin-react": "^7.33.2",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0"
+  }
+}
