@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/upload-floor-plan': 'http://localhost:8000',
-      '/health': 'http://localhost:8000',
+      '/upload-floor-plan': 'https://floor-plan-check-smoky.vercel.app',
+      '/health': 'https://floor-plan-check-smoky.vercel.app',
     },
-  },
+  }
 })
